@@ -4,7 +4,7 @@ def get_files_with_extension(directory, extension):
     files = []
     for name in os.listdir(directory):
         if name.endswith(extension):
-            files.append(f'{directory}/{name}')
+            files.append('{directory}/{name}')
     return files
 
 
@@ -31,7 +31,7 @@ def write_data_to_file(file, data, separator, append=False):
         mode = 'w'
     with open(file, mode) as f:
         for item in data:
-            f.write(f'{item}{separator}')
+            f.write('{item}{separator}')
 
 
 def input_to_output(input_file):

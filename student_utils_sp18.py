@@ -33,8 +33,8 @@ def adjacency_matrix_to_graph(adjacency_matrix):
     
     G = nx.convert_matrix.from_numpy_matrix(np.matrix(adjacency_matrix_formatted))
     
-    for node, datadict in G.nodes.items():
-        datadict['weight'] = node_weights[node]
+    # for node, datadict in G.nodes.items():
+    #     datadict['weight'] = node_weights[node]
     
     return G
 
