@@ -11,6 +11,55 @@ from student_utils_sp18 import *
   Complete the following function.
 ======================================================================
 """
+def get_neighbors(adjacency_matrix, node_index):
+  """Func to return indices of the neighbors.. parameters are adjacency matrix and node index."""
+  row_dictionary = adjacency_matrix[node_index]
+  neighbor_indices = []
+  for i in range(len(row_dictionary) - 1):
+    if (row_dictionary[i] > 0) & (i!=node_index): #check i != node_index because there will be a nonzero element representing the conquering cost.
+      neighbor_indices = neighbor_indices + [i]
+  return neighbor_indices
+
+def get_travel_cost(adjacency_matrix, path_indices):
+  """Get the cost to take a given path, ignore the conquer costs... just count the edge costs."""
+  total_cost = 0
+  #pairwise iteration through path
+  for i in range(len(path_indices) - 1):
+    pair_cost = adjacency_matrix[i][i+1]
+    total_cost = total_cost + pair_cost
+  return total_cost
+
+import numpy as np
+def get_shortest_path(G, source, dest):
+  source = str(source)
+  dest = str(dest)
+  nodes = np.arange(0, len(G))
+  nodes = ''.join([str(x) for x in nodes])
+  p=[[source]]
+  flag=0
+
+  while p:                          # evaluates to true if p not empty
+      x = p.pop(0)
+      j = nodes.index(x[-1])        # use [-1] to get last element
+      if nodes[j] == dest:             # by moving this check out of the loop...
+          break                     # ...you can use break and don't need flag
+      for i, e in enumerate(nodes): # enumerate gives (index, element)
+          if graph[j][i] and e not in x: # a bit more concise
+              p.append(x + [e])
+  return [int(elem) for elem in x]
+
+graph=  [#a,b,c,d,e,f,g,h,i,j
+     [0,1,1,1,1,0,0,0,0,0],  #a
+     [1,0,0,1,0,0,1,0,0,0],  #b
+     [1,0,0,1,0,0,0,0,0,0],  #c
+     [1,1,1,0,0,0,0,1,0,0],  #d
+     [1,0,0,0,0,1,0,1,1,0],  #e
+     [0,0,0,0,1,0,0,1,1,0],  #f
+     [0,1,0,0,0,0,0,1,1,1],  #g
+     [0,0,0,1,1,1,1,0,1,0],  #h
+     [0,0,0,0,1,1,1,1,0,1],  #i
+     [0,0,0,0,0,0,1,0,1,0],  #j
+    ]
 
 
 def solve(list_of_kingdom_names, starting_kingdom, adjacency_matrix, params=[]):
@@ -24,8 +73,51 @@ def solve(list_of_kingdom_names, starting_kingdom, adjacency_matrix, params=[]):
     Output:
         Return 2 things. The first is a list of kingdoms representing the walk, and the second is the set of kingdoms that are conquered
     """
-    raise Exception('"solve" function not defined')
-    # return closed_walk, conquered_kingdoms
+    index_to_name_map = {i: x for i, x in enumerate(list_of_kingdom_names)}
+    name_to_index_map = {x: i for i, x in enumerate(list_of_kingdom_names)}
+    conquered_nodes = np.array([])  # names
+    surrendered_nodes = set()  # names
+    closed_walk = np.array([name_to_index_map[starting_kingdom]])  # initially filled with index values
+    current_node = starting_kingdom
+
+    # Keep iterating until we conquer and surrender everything.
+    while (len(conquered_nodes) + len(surrendered_nodes)) < len(list_of_kingdom_names):
+
+        not_conquered_names = np.setdiff1d(list_of_kingdom_names, conquered_nodes)
+        # print(not_conquered_names)
+        heuristic_values = {}
+
+        # Calculate heuristic values for unconquered nodes
+        for node in not_conquered_names:
+            node_neighbor_indicies = get_neighbors(adjacency_matrix, name_to_index_map[node])  # DONE
+            unvisited_node_neighbors = np.intersect1d(np.setdiff1d(node_neighbor_indicies, conquered_nodes),
+                                                      np.setdiff1d(node_neighbor_indicies,
+                                                                   conquered_nodes))  # Calculates neighbors that have not been surrendered/conquered
+            conquering_neighbors_gain = sum([adjacency_matrix[i][i] for i in unvisited_node_neighbors])
+            shortest_path = get_shortest_path(adjacency_matrix, str(name_to_index_map[current_node]), str(
+                name_to_index_map[node]))  # TODO SUE shortest path.. dont worry about conquer costs.
+            travel_cost = get_travel_cost(adjacency_matrix, shortest_path)  # DONE
+            conquer_cost = adjacency_matrix[name_to_index_map[node]][name_to_index_map[node]]
+            node_heuristic = conquering_neighbors_gain / (travel_cost + conquer_cost)
+            heuristic_values[node] = node_heuristic
+
+        # Based on heurstics, find conquer the node with largest gain
+        node_to_conquer = max(heuristic_values, key=heuristic_values.get)  # name of node to conquer
+        surrendered_nodes.update(get_neighbors(adjacency_matrix, name_to_index_map[node_to_conquer]))
+        conquered_nodes = np.append(conquered_nodes, node_to_conquer)
+        shortest_path = get_shortest_path(adjacency_matrix, name_to_index_map[current_node],
+                                          name_to_index_map[node_to_conquer])
+        closed_walk = np.append(closed_walk, shortest_path[
+                                             1:])  # add the nodes along the path to the walk. careful to not repeat vertices
+        current_node = node_to_conquer
+
+    # Once all nodes conquered or surrendered, take the shortest path back
+    shortest_path_back = get_shortest_path(adjacency_matrix, name_to_index_map[current_node],
+                                           name_to_index_map[starting_kingdom])
+    closed_walk = np.append(closed_walk, shortest_path_back[1:])
+    closed_walk = np.array([index_to_name_map[i] for i in closed_walk])  # convert walk into names
+    print(closed_walk)
+    return list(closed_walk), conquered_nodes
 
 
 """
