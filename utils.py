@@ -31,7 +31,7 @@ def write_data_to_file(file, data, separator, append=False):
         mode = 'w'
     with open(file, mode) as f:
         for item in data:
-            f.write('{item}{separator}')
+            f.write('{}{}'.format(item, separator))
 
 
 def input_to_output(input_file):
