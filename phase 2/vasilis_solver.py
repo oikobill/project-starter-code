@@ -12,7 +12,6 @@ from networkx.algorithms.approximation import *
 
 #utils
 # calculate the heuristic for all nodes on the graph
-
 def conquer_gain(G, node):
     """Given a Graph and a node it calculates the value of the heuristic for the node"""
     """conquering_cost_neighbors/conquering_cost_current_node larger is better"""
@@ -66,7 +65,6 @@ def find_traversal(tree, start_index):
     full_walk = [start_index]
 
     for next_node in vertex_order[1:]:
-        #print(current_node, next_node)
         path = list(nx.all_simple_paths(tree, current_node, next_node))[0]
         full_walk.extend(path[1:])
         current_node = next_node
@@ -82,15 +80,18 @@ def vasilis_solver(G, start_index):
         next_node = choose_node(G)
         nodes_to_visit.append(next_node)
         update_graph(G, next_node)
+
     
     # Handle the edge case from below
-    if nodes_to_visit[0]==start_index:
+    if nodes_to_visit[0]==start_index and len(nodes_to_visit)==1:
+        print("pipes")
         return [start_index], [start_index]
     
     # get Steiner tree
     # CURRENTLY HAS THE BUG THAT THE STEINER TREE DOES NOT WORK WHEN YOU ONLY HAVE 1 TARGET VERTEX
     ST = steinertree.steiner_tree(G, set(nodes_to_visit+[start_index]))
-
+    
+    
     # Find the traversal based on the Steiner tree
     traversal = find_traversal(ST, start_index)
     conquered = dict(zip(nodes_to_visit, [False]*len(nodes_to_visit)))

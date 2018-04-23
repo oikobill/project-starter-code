@@ -4,7 +4,7 @@ def get_files_with_extension(directory, extension):
     files = []
     for name in os.listdir(directory):
         if name.endswith(extension):
-            files.append('{directory}/{name}')
+            files.append('{}/{}'.format(directory, name))
     return files
 
 
